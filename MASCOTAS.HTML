@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reserva Veterinaria</title>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <style>
+    :root {
+      --color-fondo-claro: #b3d9ff; /* celeste suave */
+      --color-fondo-oscuro: #1a1a2e;
+      --color-texto-claro: #333;
+      --color-texto-oscuro: #eee;
+      --color-acento: #c6538c;
+      --color-boton: #ff99cc;
+      --color-boton-hover: #ff66aa;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background-color: var(--color-fondo-claro);
+      color: var(--color-texto-claro);
+      position: relative;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    body.dark {
+      background-color: var(--color-fondo-oscuro);
+      color: var(--color-texto-oscuro);
+    }
+    h1, h2 {
+      text-align: center;
+      color: var(--color-acento);
+      transition: color 0.3s ease;
+    }
+    body.dark h1, body.dark h2 {
+      color: #ff99cc;
+    }
+    form, #resumenReserva, #accesoDoctor, #listaReservas {
+      background: white;
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: background-color 0.3s ease, color 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+    body.dark form, body.dark #resumenReserva, body.dark #accesoDoctor, body.dark #listaReservas {
+      background: #2c2c54;
+      color: var(--color-texto-oscuro);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-family: inherit;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+    body.dark input, body.dark select, body.dark textarea {
+      background-color: #444;
+      color: var(--color-texto-oscuro);
+      border-color: #666;
+    }
+    button {
+      background-color: var(--color-boton);
+      border: none;
+      padding: 10px 20px;
+      margin-top: 15px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      color: #fff;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: var(--color-boton-hover);
+    }
+    .reserva-item {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+    }
+    body.dark .reserva-item {
+      border-color: #555;
+    }
+    /* WhatsApp fixed button */
+    #whatsapp-contact {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background-color: #25d366;
+      padding: 10px 15px;
+      border-radius: 50px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      font-weight: bold;
+      color: white;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+    }
+    #whatsapp-contact:hover {
+      background-color: #1ebe57;
+    }
+    #whatsapp-contact img {
+      height: 24px;
+      width: 24px;
+    }
+
+    /* Banner emojis arriba */
+    #emoji-banner {
+      text-align: center;
+      font-size: 3rem;
+      margin: 15px 0 0 0;
+      user-select: none;
+      pointer-events: none;
+      transition: color 0.3s ease;
+      color: var(--color-acento);
+    }
+    body.dark #emoji-banner {
+      color: #ff99cc;
+    }
+
+    /* Botón modo oscuro */
+    #btnModoOscuro {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: var(--color-boton);
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 10000;
+      transition: background-color 0.3s ease;
+    }
+    #btnModoOscuro:hover {
+      background-color: var(--color-boton-hover);
+    }
+  </style>
+</head>
+<body>
+  <div id="emoji-banner">🐶 🐱 🐾 ✨</div>
+
+  <button id="btnModoOscuro" aria-label="Activar modo oscuro">Modo oscuro</button>
+
+  <div style="background-color: #fff0f5; border-left: 5px solid #ff80b3; padding: 20px; margin: 20px auto; max-width: 600px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 1.1em; color: #cc0066; text-align: center;">
+    ✨ En <strong>VetMascotas</strong>, tu confianza es lo más importante. ¡Gracias por confiar en nosotros! 🐾💖
+  </div>
+
+  <h1>Reserva tu cita veterinaria</h1>
+  <form id="reservaForm">
+    <label>Nombre de la mascota:</label>
+    <input type="text" name="nombreMascota" required />
+    <label>Tipo de mascota:</label>
+    <select name="tipoMascota" required>
+      <option value="">Seleccione</option>
+      <option value="Perro">Perro</option>
+      <option value="Gato">Gato</option>
+      <option value="Otro">Otro</option>
+    </select>
+    <label>Raza:</label>
+    <input type="text" name="raza" required />
+    <label>Edad:</label>
+    <input type="number" name="edad" min="0" required />
+    <label>Nombre del responsable:</label>
+    <input type="text" name="responsable" required />
+    <label>Correo electrónico del responsable:</label>
+    <input type="email" name="emailResponsable" required />
+    <label>Fecha de la cita:</label>
+    <input type="date" name="fecha" required />
+    <label>Hora de la cita:</label>
+    <select name="hora" id="hora" required></select>
+    <label>Servicio requerido:</label>
+    <select name="servicio" required>
+      <option value="">Seleccione</option>
+      <option value="Consulta general">Consulta general ($50)</option>
+      <option value="Vacunación">Vacunación ($60)</option>
+      <option value="Desparasitación">Desparasitación ($40)</option>
+      <option value="Urgencia">Urgencia ($100)</option>
+      <option value="Baño sencillo">Baño sencillo ($70)</option>
+      <option value="Baño completo">Baño completo ($120)</option>
+    </select>
+    <div id="totalPago" style="margin-top: 15px; font-weight: bold; color: var(--color-acento);">
+      Total a pagar: $0
+    </div>
+    <label>Observaciones:</label>
+    <textarea name="observaciones" rows="3"></textarea>
+
+    <label>Forma de pago:</label>
+    <select name="formaPago" id="formaPago" required>
+      <option value="">Seleccione</option>
+      <option value="nequi">Nequi (Pago online)</option>
+      <option value="pse">PSE (Pago online)</option>
+      <option value="efectivo">Efectivo (Después del servicio)</option>
+    </select>
+
+    <button type="button" id="btnPagarAhora">Pagar ahora</button>
+  </form>
+  <div id="resumenReserva"></div>
+
+  <div id="accesoDoctor" style="display:none">
+    <h2>Acceso para el doctor 🩺</h2>
+    <label>Clave:</label>
+    <input type="password" id="claveDoctor" />
+    <button onclick="verificarAcceso()">Ver reservas</button>
+  </div>
+  <div id="listaReservas" style="display:none"></div>
+
+  <!-- WhatsApp contact -->
+  <a href="https://wa.me/573009650709" target="_blank" id="whatsapp-contact" aria-label="Contactar por WhatsApp">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" />
+    Contactar por WhatsApp
+  </a>
+
+  <script>
+    emailjs.init("user_prototipo123");
+
+    const reservas = JSON.parse(localStorage.getItem('reservasVet')) || [];
+    const precios = {
+      'Consulta general': 50,
+      'Vacunación': 60,
+      'Desparasitación': 40,
+      'Urgencia': 100,
+      'Baño sencillo': 70,
+      'Baño completo': 120
+    };
+
+    function horaDisponible(fecha, hora) {
+      return !reservas.some(r => r.fecha === fecha && r.hora === hora);
+    }
+
+    function cargarHoras() {
+      const selectHora = document.getElementById('hora');
+      const fechaSeleccionada = document.querySelector('input[name="fecha"]').value;
+      selectHora.innerHTML = '<option value="">Seleccione una hora</option>';
+      for(let h=9; h<18; h++) {
+        if(h === 13) continue; // hora de comida
+        if(!horaDisponible(fechaSeleccionada, h.toString())) continue;
+        let displayHora = h < 12 ? `${h}:00 am` : h === 12 ? '12:00 pm' : `${h-12}:00 pm`;
+        selectHora.innerHTML += `<option value="${h}">${displayHora}</option>`;
+      }
+    }
+
+    document.querySelector('input[name="fecha"]').addEventListener('change', cargarHoras);
+
+    document.querySelector('select[name="servicio"]').addEventListener('change', () => {
+      const servicioSeleccionado = document.querySelector('select[name="servicio"]').value;
+      const precioSeleccionado = precios[servicioSeleccionado] || 0;
+      document.getElementById('totalPago').textContent = `Total a pagar: $${precioSeleccionado}`;
+    });
+
+    const btnPagarAhora = document.getElementById('btnPagarAhora');
+    btnPagarAhora.addEventListener('click', () => {
+      const form = document.getElementById('reservaForm');
+      if(!form.checkValidity()) {
+        alert('Por favor completa todos los campos requeridos antes de pagar.');
+        return;
+      }
+      const servicio = form.servicio.value;
+      const precio = precios[servicio] || 0;
+      const nuevaReserva = {
+        mascota: form.nombreMascota.value.trim(),
+        tipo: form.tipoMascota.value,
+        raza: form.raza.value.trim(),
+        edad: parseInt(form.edad.value),
+        responsable: form.responsable.value.trim(),
+        email: form.emailResponsable.value.trim(),
+        fecha: form.fecha.value,
+        hora: form.hora.value,
+        servicio,
+        observaciones: form.observaciones.value.trim(),
+        precio,
+        pago: form.formaPago.value
+      };
+      if(!horaDisponible(nuevaReserva.fecha, nuevaReserva.hora)) {
+        alert('La hora seleccionada ya está reservada para esa fecha.');
+        return;
+      }
+      reservas.push(nuevaReserva);
+      localStorage.setItem('reservasVet', JSON.stringify(reservas));
+      mostrarResumen(nuevaReserva);
+      enviarEmail(nuevaReserva);
+      form.reset();
+      cargarHoras();
+      document.getElementById('totalPago').textContent = 'Total a pagar: $0';
+    });
+
+    function mostrarResumen(reserva) {
+      const resumen = document.getElementById('resumenReserva');
+      resumen.innerHTML = `
+        <h3>🐾 Reserva realizada con éxito 🐾</h3>
+        <p><strong>Mascota:</strong> ${reserva.mascota} (${reserva.tipo}, ${reserva.raza}, ${reserva.edad} años)</p>
+        <p><strong>Responsable:</strong> ${reserva.responsable}</p>
+        <p><strong>Fecha y Hora:</strong> ${reserva.fecha} a las ${formatHora(reserva.hora)}</p>
+        <p><strong>Servicio:</strong> ${reserva.servicio} - $${reserva.precio}</p>
+        <p><strong>Forma de pago:</strong> ${reserva.pago}</p>
+        <p><strong>Observaciones:</strong> ${reserva.observaciones || 'Ninguna'}</p>
+      `;
+    }
+
+    function enviarEmail(reserva) {
+      const templateParams = {
+        to_email: reserva.email,
+        to_doctor: 'doctor@vetmascotas.com',
+        mascota: reserva.mascota,
+        tipo: reserva.tipo,
+        raza: reserva.raza,
+        edad: reserva.edad,
+        responsable: reserva.responsable,
+        fecha: reserva.fecha,
+        hora: formatHora(reserva.hora),
+        servicio: reserva.servicio,
+        observaciones: reserva.observaciones,
+        precio: reserva.precio,
+        pago: reserva.pago
+      };
+      emailjs.send('service_vetdemo', 'template_reserva', templateParams)
+        .then(() => console.log('Email enviado'))
+        .catch(e => console.error('Error enviando email:', e));
+    }
+
+    function verificarAcceso() {
+      const clave = document.getElementById('claveDoctor').value;
+      if(clave === 'vetmascotas') {
+        document.getElementById('listaReservas').style.display = 'block';
+        mostrarReservasDoctor();
+      } else {
+        alert('Clave incorrecta.');
+      }
+    }
+
+    function mostrarReservasDoctor() {
+      const lista = document.getElementById('listaReservas');
+      lista.innerHTML = '<h2>Reservas registradas</h2>';
+      if(reservas.length === 0) {
+        lista.innerHTML += '<p>No hay reservas aún.</p>';
+        return;
+      }
+      reservas.forEach((r, i) => {
+        lista.innerHTML += `
+          <div class="reserva-item">
+            <strong>#${i+1} - ${r.mascota}</strong><br />
+            Fecha: ${r.fecha} Hora: ${formatHora(r.hora)}<br />
+            Servicio: ${r.servicio} - $${r.precio}<br />
+            Responsable: ${r.responsable}<br />
+            Forma de pago: ${r.pago}<br />
+            Observaciones: ${r.observaciones || 'Ninguna'}
+          </div>
+        `;
+      });
+    }
+
+    function formatHora(h) {
+      const horaNum = Number(h);
+      if(horaNum === 12) return '12:00 pm';
+      else if(horaNum > 12) return `${horaNum - 12}:00 pm`;
+      else return `${horaNum}:00 am`;
+    }
+
+    cargarHoras(); // carga horas disponibles al iniciar
+
+    // Modo oscuro toggle
+    const btnModoOscuro = document.getElementById('btnModoOscuro');
+    btnModoOscuro.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      if(document.body.classList.contains('dark')) {
+        btnModoOscuro.textContent = 'Modo claro';
+      } else {
+        btnModoOscuro.textContent = 'Modo oscuro';
+      }
+    });
+
+    // Mostrar acceso doctor siempre visible
+    document.getElementById('accesoDoctor').style.display = 'block';
+
+  </script>
+</body>
+</html>
